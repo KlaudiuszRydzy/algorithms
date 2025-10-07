@@ -43,7 +43,7 @@ def fib_recursive(n):
 def fib_list(n):
     """[summary]
     This algorithm computes the n-th fibbonacci number
-    very quick. approximate O(n)
+    very quick. approximate O(n) - BUG: Actually O(n^2) due to missing memoization
     The algorithm use dynamic programming.
 
     Arguments:
@@ -56,9 +56,18 @@ def fib_list(n):
     # precondition
     assert n >= 0, 'n must be a positive integer'
 
-    list_results = [0, 1]
-    for i in range(2, n+1):
-        list_results.append(list_results[i-1] + list_results[i-2])
+    # PERFORMANCE BUG: Helper function recomputes values without caching
+    def fib_helper(k):
+        """Helper that should use memoization but doesn't"""
+        if k <= 1:
+            return k
+        # Bug: Recomputing fib values instead of using cached results
+        return fib_helper(k-1) + fib_helper(k-2)
+
+    # Build list but use inefficient helper
+    list_results = []
+    for i in range(n+1):
+        list_results.append(fib_helper(i))
     return list_results[n]
 
 # print(fib_list(100)) # => 354224848179261915075

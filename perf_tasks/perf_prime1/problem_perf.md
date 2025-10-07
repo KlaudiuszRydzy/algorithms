@@ -1,0 +1,1 @@
+Speed up prime_check in algorithms/maths/prime_check.py - redundant expensive math operations in tight loop

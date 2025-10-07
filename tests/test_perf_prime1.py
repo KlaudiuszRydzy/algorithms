@@ -1,0 +1,88 @@
+"""
+Performance test for prime_check (Task: perf_prime1)
+
+Bug: Redundant sqrt() computation inside loop on every iteration
+Expected fix: Remove redundant computation, use existing j*j comparison
+"""
+
+import sys
+from pathlib import Path
+
+# Add parent directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from algorithms.maths.prime_check import prime_check
+from perf_tasks._templates.perf_harness import measure_performance
+
+
+def test_correctness():
+    """Verify prime_check produces correct results"""
+    # Test primes
+    assert prime_check(2) == True
+    assert prime_check(3) == True
+    assert prime_check(5) == True
+    assert prime_check(7) == True
+    assert prime_check(11) == True
+    assert prime_check(13) == True
+    assert prime_check(97) == True
+    assert prime_check(541) == True
+
+    # Test non-primes
+    assert prime_check(1) == False
+    assert prime_check(4) == False
+    assert prime_check(6) == False
+    assert prime_check(8) == False
+    assert prime_check(9) == False
+    assert prime_check(100) == False
+    assert prime_check(1000) == False
+
+    # Test edge cases
+    assert prime_check(0) == False
+    assert prime_check(-5) == False
+
+
+def test_performance():
+    """
+    Performance gate: prime_check should efficiently handle large numbers.
+
+    With the bug (redundant sqrt in loop), this is slower.
+    After fixing (remove redundant computation), should be at least 3x faster.
+    """
+    # Test with large prime-like numbers
+    large_numbers = [
+        999983,  # Large prime
+        1000003,  # Large prime
+        1000033,  # Composite
+        1000037,  # Large prime
+    ]
+
+    def check_all():
+        for num in large_numbers:
+            prime_check(num)
+
+    # Measure performance
+    perf = measure_performance(
+        check_all,
+        n_runs=10,
+        warmup=2
+    )
+
+    # Performance gate: should complete in under 0.02 seconds (optimized version)
+    # The bugged version takes 0.06+ seconds due to redundant sqrt calls
+    # This test will FAIL with the bug, PASS after fix
+    assert perf['median'] < 0.02, (
+        f"prime_check too slow: {perf['median']:.4f}s for large numbers. "
+        f"Expected < 0.02s. Check for redundant computations in loop."
+    )
+
+    print(f"✓ Performance OK: {perf['median']:.4f}s")
+
+
+if __name__ == "__main__":
+    print("Running correctness tests...")
+    test_correctness()
+    print("✓ All correctness tests passed")
+
+    print("\nRunning performance test...")
+    test_performance()
+    print("✓ Performance test passed")

@@ -28,8 +28,16 @@ def shortest_distance(grid):
     return res if res!=float('inf') else -1
 
 def bfs(grid, matrix, i, j, count):
-    q = [(i, j, 0)]
+    """
+    BFS helper function.
+
+    PERFORMANCE BUG: Using list with pop(0) which is O(n).
+    Should use collections.deque with popleft() for O(1) operations.
+    """
+    q = [(i, j, 0)]  # BUG: Should use collections.deque for O(1) popleft
     while q:
+        # PERFORMANCE BUG: list.pop(0) is O(n), shifts all remaining elements
+        # Should use deque.popleft() which is O(1)
         i, j, step = q.pop(0)
         for k, l in [(i-1,j), (i+1,j), (i,j-1), (i,j+1)]:
             # only the position be visited by count times will append to queue

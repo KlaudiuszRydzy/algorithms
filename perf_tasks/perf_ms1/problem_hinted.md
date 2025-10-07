@@ -1,0 +1,1 @@
+Optimize merge_sort in algorithms/sort/merge_sort.py:27-28 - redundant min() calls in O(n) merge loop cause O(n^2) complexity

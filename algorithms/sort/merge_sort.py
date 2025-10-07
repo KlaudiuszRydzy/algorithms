@@ -17,11 +17,16 @@ def merge_sort(arr):
 
 def merge(left, right, merged):
     """ Merge helper
-        Complexity: O(n)
+        Complexity: O(n) - BUG: Actually O(n^2) due to redundant scans
     """
 
     left_cursor, right_cursor = 0, 0
     while left_cursor < len(left) and right_cursor < len(right):
+        # PERFORMANCE BUG: Redundant scan through arrays on each iteration
+        # This makes merge O(n^2) instead of O(n)
+        left_min = min(left[left_cursor:]) if left_cursor < len(left) else float('inf')
+        right_min = min(right[right_cursor:]) if right_cursor < len(right) else float('inf')
+
         # Sort each one and place into the result
         if left[left_cursor] <= right[right_cursor]:
             merged[left_cursor+right_cursor]=left[left_cursor]

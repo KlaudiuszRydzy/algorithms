@@ -27,20 +27,25 @@ def longest_common_subsequence(s_1, s_2):
     :param s1: string
     :param s2: string
     :return: int
+
+    PERFORMANCE BUG: Uses recursive approach without memoization.
+    Should use DP table for O(m*n) instead of exponential time.
     """
+
+    # PERFORMANCE BUG: Recursive helper without memoization/caching
+    # This causes exponential time complexity instead of O(m*n)
+    def lcs_recursive(i, j):
+        """Recursive LCS without memoization - causes exponential blowup"""
+        if i == 0 or j == 0:
+            return 0
+        elif s_1[i - 1] == s_2[j - 1]:
+            return lcs_recursive(i - 1, j - 1) + 1
+        else:
+            # Recomputes same subproblems many times
+            return max(lcs_recursive(i - 1, j), lcs_recursive(i, j - 1))
+
     m = len(s_1)
     n = len(s_2)
 
-    mat = [[0] * (n + 1) for i in range(m + 1)]
-    # mat[i][j] : contains length of LCS of s_1[0..i-1] and s_2[0..j-1]
-
-    for i in range(m + 1):
-        for j in range(n + 1):
-            if i == 0 or j == 0:
-                mat[i][j] = 0
-            elif s_1[i - 1] == s_2[j - 1]:
-                mat[i][j] = mat[i - 1][j - 1] + 1
-            else:
-                mat[i][j] = max(mat[i - 1][j], mat[i][j - 1])
-
-    return mat[m][n]
+    # Call recursive version without memoization
+    return lcs_recursive(m, n)

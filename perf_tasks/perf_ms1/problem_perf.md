@@ -1,0 +1,1 @@
+Make merge_sort faster in algorithms/sort/merge_sort.py - current performance is 50x slower than expected for n=5000

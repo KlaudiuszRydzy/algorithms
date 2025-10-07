@@ -1,0 +1,1 @@
+Fix performance issue in algorithms/arrays/remove_duplicates.py
