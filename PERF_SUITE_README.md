@@ -219,7 +219,7 @@ Each entry in `instances.jsonl` follows this schema:
 
 ```json
 {
-  "image_name": "python:3.12",
+  "image_name": "python:3.11",
   "instance_id": "perf_ms1__hinted",
   "repo_name": "algorithms",
   "base_commit": "HEAD",
