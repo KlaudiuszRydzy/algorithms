@@ -49,23 +49,23 @@ def test_performance():
     """
     # Generate test data
     random.seed(42)
-    n = 5000
+    n = 10000  # Increased to make bug more visible
     test_data = list(range(n))
     random.shuffle(test_data)
 
     # Measure performance
     perf = measure_performance(
         lambda: merge_sort(test_data.copy()),
-        n_runs=5,
+        n_runs=3,  # Reduced runs since it's slower
         warmup=1
     )
 
-    # Performance gate: should complete in under 0.5 seconds (optimized version)
-    # The bugged version takes ~5-10 seconds
+    # Performance gate: should complete in under 1.0 seconds (optimized version)
+    # The bugged version takes ~5-15 seconds for n=10000
     # This test will FAIL with the bug, PASS after fix
-    assert perf['median'] < 0.5, (
+    assert perf['median'] < 1.0, (
         f"merge_sort too slow: {perf['median']:.3f}s for n={n}. "
-        f"Expected < 0.5s. Check for O(n^2) operations in merge."
+        f"Expected < 1.0s. Check for O(n^2) operations in merge."
     )
 
     print(f"✓ Performance OK: {perf['median']:.3f}s (n={n})")

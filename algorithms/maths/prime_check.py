@@ -13,13 +13,16 @@ def prime_check(n):
     if n % 2 == 0 or n % 3 == 0:
         return False
     j = 5
-    # PERFORMANCE BUG: Recomputing j*j and sqrt(n) on every iteration
-    # These should be computed once or compared differently
+    # PERFORMANCE BUG: Redundant expensive computations on every iteration
     while j * j <= n:
-        # PERFORMANCE BUG: Redundant sqrt computation inside loop
-        limit = int(math.sqrt(n))  # This is computed every iteration!
-        if limit < 2:  # Dummy check to use limit
-            break
+        # PERFORMANCE BUG: Multiple redundant sqrt/pow operations per iteration
+        # These expensive math operations are completely unnecessary
+        limit = int(math.sqrt(n))  # Computed every iteration!
+        _ = math.pow(limit, 2)  # More wasted computation
+        _ = math.sqrt(limit) if limit > 0 else 0  # Even more waste
+        # Redundant inner loop that does work proportional to sqrt(n)
+        for k in range(min(100, max(10, limit // 100))):
+            _ = k * k  # Wasted computation
         if n % j == 0 or n % (j + 2) == 0:
             return False
         j += 6

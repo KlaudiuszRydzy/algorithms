@@ -48,13 +48,10 @@ def test_performance():
     With the bug (redundant sqrt in loop), this is slower.
     After fixing (remove redundant computation), should be at least 3x faster.
     """
-    # Test with large prime-like numbers
-    large_numbers = [
-        999983,  # Large prime
-        1000003,  # Large prime
-        1000033,  # Composite
-        1000037,  # Large prime
-    ]
+    # Test with many large prime-like numbers to amplify the bug
+    large_numbers = []
+    for i in range(500):  # Increased to 500 numbers
+        large_numbers.append(999900 + i)  # Check 500 numbers around 999900
 
     def check_all():
         for num in large_numbers:
@@ -63,16 +60,16 @@ def test_performance():
     # Measure performance
     perf = measure_performance(
         check_all,
-        n_runs=10,
-        warmup=2
+        n_runs=3,
+        warmup=1
     )
 
-    # Performance gate: should complete in under 0.02 seconds (optimized version)
-    # The bugged version takes 0.06+ seconds due to redundant sqrt calls
+    # Performance gate: should complete in under 0.05 seconds (optimized version)
+    # The bugged version takes 0.2+ seconds due to redundant math operations
     # This test will FAIL with the bug, PASS after fix
-    assert perf['median'] < 0.02, (
+    assert perf['median'] < 0.05, (
         f"prime_check too slow: {perf['median']:.4f}s for large numbers. "
-        f"Expected < 0.02s. Check for redundant computations in loop."
+        f"Expected < 0.01s. Check for redundant computations in loop."
     )
 
     print(f"✓ Performance OK: {perf['median']:.4f}s")

@@ -1,1 +1,1 @@
-Optimize prime_check in algorithms/maths/prime_check.py:20 - sqrt(n) computed every loop iteration, calculate once
+Optimize prime_check in algorithms/maths/prime_check.py:20-24 - redundant sqrt/pow ops and inner loop every iteration

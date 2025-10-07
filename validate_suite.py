@@ -24,6 +24,8 @@ PERF_TESTS = [
     "tests/test_perf_bfs1.py",
     "tests/test_perf_prime1.py",
     "tests/test_perf_lcs1.py",
+    "tests/test_perf_edit1.py",
+    "tests/test_perf_knap1.py",
 ]
 
 

@@ -20,9 +20,25 @@ class Item:
 
 
 def get_maximum_value(items, capacity):
-    dp = [0] * (capacity + 1)
-    for item in items:
-        for cur_weight in reversed(range(item.weight, capacity+1)):
-            dp[cur_weight] = max(dp[cur_weight], item.value + dp[cur_weight - item.weight])
-    return dp[capacity]
+    """
+    PERFORMANCE BUG: Uses recursive approach without memoization.
+    Should use DP array for O(n*W) instead of exponential time.
+    """
+    # PERFORMANCE BUG: Recursive helper without memoization - exponential!
+    def knapsack_recursive(index, remaining_capacity):
+        """Recursive knapsack without memoization - O(2^n)"""
+        if index >= len(items) or remaining_capacity <= 0:
+            return 0
+
+        # Can't include this item
+        if items[index].weight > remaining_capacity:
+            return knapsack_recursive(index + 1, remaining_capacity)
+
+        # Try both including and excluding current item
+        include = items[index].value + knapsack_recursive(index + 1, remaining_capacity - items[index].weight)
+        exclude = knapsack_recursive(index + 1, remaining_capacity)
+
+        return max(include, exclude)
+
+    return knapsack_recursive(0, capacity)
 

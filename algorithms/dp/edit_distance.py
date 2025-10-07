@@ -46,24 +46,30 @@ Space: O(length_a*length_b)
 def edit_distance(word_a, word_b):
     """Finds edit distance between word_a and word_b
 
+    PERFORMANCE BUG: Uses recursive approach without memoization.
+    Should use DP table for O(m*n) instead of exponential time.
+
     Kwyword arguments:
     word_a -- string
     word_b -- string
     """
 
-    length_a, length_b = len(word_a) + 1, len(word_b) + 1
+    # PERFORMANCE BUG: Recursive helper without memoization/caching
+    # This causes exponential time complexity instead of O(m*n)
+    def edit_recursive(i, j):
+        """Recursive edit distance without memoization - exponential blowup"""
+        if i == 0:
+            return j
+        if j == 0:
+            return i
 
-    edit = [[0 for _ in range(length_b)] for _ in range(length_a)]
+        cost = 0 if word_a[i - 1] == word_b[j - 1] else 1
 
-    for i in range(1, length_a):
-        edit[i][0] = i
+        # Recomputes same subproblems many times - exponential!
+        return min(
+            edit_recursive(i - 1, j) + 1,      # deletion
+            edit_recursive(i, j - 1) + 1,      # insertion
+            edit_recursive(i - 1, j - 1) + cost  # substitution
+        )
 
-    for j in range(1, length_b):
-        edit[0][j] = j
-
-    for i in range(1, length_a):
-        for j in range(1, length_b):
-            cost = 0 if word_a[i - 1] == word_b[j - 1] else 1
-            edit[i][j] = min(edit[i - 1][j] + 1, edit[i][j - 1] + 1, edit[i - 1][j - 1] + cost)
-
-    return edit[-1][-1]  # this is the same as edit[length_a][length_b]
+    return edit_recursive(len(word_a), len(word_b))
