@@ -1,17 +1,8 @@
 # Performance Bug Test Suite for SWE-Agent
 
-A curated collection of realistic performance bugs for testing AI agents on algorithmic optimization tasks.
-
 ## Overview
 
-This repository branch (`perf-bugs-suite`) contains **8 performance bug tasks** based on the [keon/algorithms](https://github.com/keon/algorithms) Python library. Each bug represents a common performance anti-pattern:
-
-1. **Redundant nested scans** - O(n²) where O(n) exists
-2. **Missing memoization** - Exponential recomputation instead of caching
-3. **Wrong data structure** - List membership O(n) instead of set O(1)
-4. **Inefficient queue operations** - list.pop(0) O(n) instead of deque O(1)
-5. **Redundant computations** - Expensive operations repeated in tight loops
-6. **Missing DP table** - Recursive without cache causing exponential blowup
+This repository branch (`perf-bugs-suite`) contains **8 performance bug tasks** based on the [keon/algorithms](https://github.com/keon/algorithms) Python library.
 
 ## Repository Structure
 
@@ -124,11 +115,6 @@ def test_performance():
     assert slowdown_factor < 1.5, f"Code is {slowdown_factor:.1f}x slower than baseline"
 ```
 
-**Key properties:**
-- **Hardware-independent**: Compares relative performance on same machine
-- **Robust measurement**: Median of multiple runs with warmup
-- **Clear pass/fail**: 1.5x threshold distinguishes bugs (10-1000×) from noise
-
 ## Validation
 
 Run the validation script to confirm all tasks are properly configured:
@@ -140,8 +126,6 @@ python validate_suite.py
 **Expected output on `perf-bugs-suite` branch:**
 - ✓ All correctness tests PASS (bugs don't break functionality)
 - ✓ All performance tests FAIL (bugs cause measurable slowdown)
-
-## Development Workflow
 
 ### Adding a New Task
 
