@@ -4,7 +4,7 @@ A curated collection of realistic performance bugs for testing AI agents on algo
 
 ## Overview
 
-This repository branch (`perf-bugs-suite`) contains **6 performance bug tasks** based on the [keon/algorithms](https://github.com/keon/algorithms) Python library. Each bug represents a common performance anti-pattern found in real codebases:
+This repository branch (`perf-bugs-suite`) contains **8 performance bug tasks** based on the [keon/algorithms](https://github.com/keon/algorithms) Python library. Each bug represents a common performance anti-pattern:
 
 1. **Redundant nested scans** - O(n²) where O(n) exists
 2. **Missing memoization** - Exponential recomputation instead of caching
@@ -13,59 +13,35 @@ This repository branch (`perf-bugs-suite`) contains **6 performance bug tasks** 
 5. **Redundant computations** - Expensive operations repeated in tight loops
 6. **Missing DP table** - Recursive without cache causing exponential blowup
 
-### Why This Suite?
-
-- **Realistic bugs**: Common patterns seen in production code, not artificial delays
-- **Correctness preserved**: Bugged code produces correct output, just slower
-- **Measurable impact**: 5-100× slowdowns that agents can detect and fix
-- **Multiple difficulty levels**: 3 prompt modes per task (hinted, no-scope, fix-only)
-- **Deterministic testing**: Performance gates use statistical measures (median) with warmup runs
-
 ## Repository Structure
 
 ```
 perf-bugs-suite branch:
 ├── algorithms/               # Algorithm implementations (with bugs injected)
-│   ├── sort/merge_sort.py   # Task 1: Redundant min() scans
-│   ├── dp/fib.py             # Task 2: Missing memoization
-│   ├── arrays/remove_duplicates.py  # Task 3: List instead of set
-│   ├── bfs/shortest_distance_from_all_buildings.py  # Task 4: list.pop(0)
-│   ├── maths/prime_check.py  # Task 5: Redundant sqrt()
-│   └── dp/longest_common_subsequence.py  # Task 6: No DP table
-├── tests/                    # Performance test harnesses
-│   ├── test_perf_ms1.py     # Merge sort harness
-│   ├── test_perf_fib1.py    # Fibonacci harness
-│   ├── test_perf_dup1.py    # Duplicates harness
-│   ├── test_perf_bfs1.py    # BFS harness
-│   ├── test_perf_prime1.py  # Prime check harness
-│   └── test_perf_lcs1.py    # LCS harness
-├── perf_tasks/              # Task metadata
-│   ├── _templates/
-│   │   └── perf_harness.py  # Reusable timing utilities
-│   ├── perf_ms1/
-│   │   ├── problem_hinted.md      # Exact location hint
-│   │   ├── problem_perf.md        # Performance goal, no location
-│   │   ├── problem_fix.md         # Generic "fix code"
-│   │   └── baseline_snippet.py    # Original (fast) code
-│   └── ... (5 more tasks)
-├── instances.jsonl          # 18 SWE-Agent task instances (6 tasks × 3 modes)
-├── validate_suite.py        # Validation script
+├── tests/                    # Performance test harnesses with baseline comparison
+├── perf_tasks/              # Task metadata and baseline snippets
+│   ├── _templates/perf_harness.py  # Reusable timing utilities
+│   ├── perf_*/baseline_snippet.py  # Correct implementations from master
+│   └── perf_*/problem_*.md         # Problem statements (3 modes each)
+├── instances.jsonl          # 24 SWE-Agent task instances (8 tasks × 3 modes)
 └── PERF_SUITE_README.md     # This file
 
 master branch:
-└── algorithms/              # Original (fast) implementations
+└── algorithms/              # Original (correct) implementations
 ```
 
 ## Task Details
 
-| Task ID | File | Bug Type | Complexity | Speedup Expected |
-|---------|------|----------|------------|------------------|
+| Task ID | File | Bug Type | Complexity | Slowdown |
+|---------|------|----------|------------|----------|
 | `perf_ms1` | `algorithms/sort/merge_sort.py` | Redundant nested scan | O(n²) → O(n log n) | 50× |
-| `perf_fib1` | `algorithms/dp/fib.py` | Missing memoization | O(2ⁿ) → O(n) | 1000× |
-| `perf_dup1` | `algorithms/arrays/remove_duplicates.py` | Wrong data structure | O(n²) → O(n) | 50× |
-| `perf_bfs1` | `algorithms/bfs/shortest_distance_from_all_buildings.py` | Inefficient queue | O(n²) → O(n) | 10× |
-| `perf_prime1` | `algorithms/maths/prime_check.py` | Redundant computation | O(n×√n) → O(√n) | 3× |
-| `perf_lcs1` | `algorithms/dp/longest_common_subsequence.py` | Missing DP table | O(2ⁿ) → O(m×n) | 100× |
+| `perf_fib1` | `algorithms/dp/fib.py` | Missing memoization | O(2ⁿ) → O(n) | 190,000× |
+| `perf_dup1` | `algorithms/arrays/remove_duplicates.py` | Wrong data structure | O(n²) → O(n) | 340× |
+| `perf_bfs1` | `algorithms/bfs/shortest_distance_from_all_buildings.py` | Inefficient queue | O(n²) → O(n) | 1.3× |
+| `perf_prime1` | `algorithms/maths/prime_check.py` | Redundant computation | O(n×√n) → O(√n) | 3-5× |
+| `perf_lcs1` | `algorithms/dp/longest_common_subsequence.py` | Missing DP table | O(2ⁿ) → O(m×n) | 1000×+ |
+| `perf_edit1` | `algorithms/dp/edit_distance.py` | Missing DP table | O(2ⁿ) → O(m×n) | 1000×+ |
+| `perf_knap1` | `algorithms/dp/knapsack.py` | Missing memoization | O(2ⁿ) → O(n×W) | 13,000× |
 
 ## Prompt Modes
 
@@ -85,8 +61,8 @@ Each task has **3 problem statements** with different clarity levels:
 ### Prerequisites
 
 ```bash
-# Python 3.12
-python --version  # Should be 3.12.x
+# Python 3.11
+python --version  # Should be 3.11.x
 
 # Clone this repository
 git clone https://github.com/YOUR_USERNAME/algorithms.git
@@ -102,12 +78,11 @@ python validate_suite.py
 
 # 2. Run SWE-Agent with instances.jsonl
 cd /path/to/SWE-agent
-python -m sweagent.run.run run \
-  --instances.type file \
-  --instances.path /path/to/algorithms/instances.jsonl \
-  --instances.deployment.type local \
+sweagent run-batch \
   --config config/default.yaml \
-  --model.name "gpt-4"
+  --config ./hpc_podman_algorithms.yaml \
+  --agent.model.per_instance_cost_limit=0 \
+  --agent.model.max_input_tokens=60000
 ```
 
 ### Running Individual Tasks
@@ -126,53 +101,33 @@ pytest -xvs tests/test_perf_ms1.py::test_performance
 
 ## Performance Testing Methodology
 
-### Statistical Approach
-
-We use **relative speedup factors** instead of absolute time thresholds to ensure machine-independent testing:
-
-```python
-# Measure baseline (bugged) performance
-baseline_times = [run_bugged() for _ in range(10)]
-baseline_median = median(baseline_times)
-
-# Measure fixed performance
-fixed_times = [run_fixed() for _ in range(10)]
-fixed_median = median(fixed_times)
-
-# Calculate speedup
-speedup = baseline_median / fixed_median
-
-# Pass/fail criterion
-PASS = speedup >= min_speedup_factor  # e.g., 5.0×
-```
-
-### Why Median + Warmup?
-
-- **Median**: Robust to outliers (GC pauses, OS scheduling)
-- **Warmup runs**: Eliminate JIT compilation/caching effects
-- **Relative speedup**: Machine-independent (works on any hardware)
-
-### Test Harness Example
-
-Each test file (`tests/test_perf_*.py`) contains:
-
-1. **`test_correctness()`**: Verifies bugged code still produces correct output
-2. **`test_performance()`**: Asserts execution time is within acceptable bounds
+Tests use **relative comparison** between buggy code (perf-bugs-suite branch) and correct baseline (master branch):
 
 ```python
 def test_performance():
-    """Bugged version will FAIL this test."""
-    perf = measure_performance(
-        lambda: merge_sort(test_data.copy()),
-        n_runs=5,
-        warmup=1
-    )
+    # Measure current (buggy) implementation
+    def run_current():
+        data_copy = test_data.copy()
+        merge_sort(data_copy)
+    current_perf = measure_performance(run_current, n_runs=3, warmup=1)
 
-    assert perf['median'] < 0.5, (
-        f"merge_sort too slow: {perf['median']:.3f}s. "
-        f"Expected < 0.5s."
-    )
+    # Measure baseline (correct) implementation from master
+    def run_baseline():
+        data_copy = test_data.copy()
+        merge_sort_baseline(data_copy)
+    baseline_perf = measure_performance(run_baseline, n_runs=3, warmup=1)
+
+    # Calculate slowdown factor
+    slowdown_factor = current_perf['median'] / baseline_perf['median']
+
+    # Pass if within 1.5x of baseline (buggy code will fail with 10-1000x slowdown)
+    assert slowdown_factor < 1.5, f"Code is {slowdown_factor:.1f}x slower than baseline"
 ```
+
+**Key properties:**
+- **Hardware-independent**: Compares relative performance on same machine
+- **Robust measurement**: Median of multiple runs with warmup
+- **Clear pass/fail**: 1.5x threshold distinguishes bugs (10-1000×) from noise
 
 ## Validation
 
@@ -241,19 +196,7 @@ Each entry in `instances.jsonl` follows this schema:
 }
 ```
 
-## Performance Benchmarks (Reference Machine)
+---
 
-Approximate timings on 2020 MacBook Pro (M1, 16GB RAM):
-
-| Task | Bugged | Fixed | Speedup |
-|------|--------|-------|---------|
-| perf_ms1 | 5.2s | 0.08s | 65× |
-| perf_fib1 | 12.5s | 0.001s | 12500× |
-| perf_dup1 | 3.8s | 0.02s | 190× |
-| perf_bfs1 | 4.1s | 0.15s | 27× |
-| perf_prime1 | 0.06s | 0.015s | 4× |
-| perf_lcs1 | 8.3s | 0.002s | 4150× |
-
-
-- Original algorithms from [keon/algorithms](https://github.com/keon/algorithms)
+Original algorithms from [keon/algorithms](https://github.com/keon/algorithms)
 
