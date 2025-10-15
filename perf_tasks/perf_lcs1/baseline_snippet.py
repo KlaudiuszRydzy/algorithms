@@ -1,22 +1,25 @@
-# Optimized version using DP table for O(m*n) time
-def longest_common_subsequence(s_1, s_2):
-    """
-    LCS using dynamic programming with memoization table.
-    Time: O(m*n), Space: O(m*n)
-    """
-    m = len(s_1)
-    n = len(s_2)
+"""
+Baseline (correct) implementation of longest_common_subsequence from master branch.
+This is the fast O(m*n) version using DP table.
+"""
 
-    mat = [[0] * (n + 1) for i in range(m + 1)]
-    # mat[i][j] : contains length of LCS of s_1[0..i-1] and s_2[0..j-1]
+def longest_common_subsequence_baseline(str_a, str_b):
+    """
+    Compute longest common subsequence using dynamic programming.
+    Complexity: O(m*n) where m, n are lengths of input strings.
+    """
+    if str_a == "" or str_b == "":
+        return 0
 
-    for i in range(m + 1):
-        for j in range(n + 1):
-            if i == 0 or j == 0:
-                mat[i][j] = 0
-            elif s_1[i - 1] == s_2[j - 1]:
-                mat[i][j] = mat[i - 1][j - 1] + 1
+    m = len(str_a)
+    n = len(str_b)
+    dp_table = [[0] * (n + 1) for _ in range(m + 1)]
+
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if str_a[i - 1] == str_b[j - 1]:
+                dp_table[i][j] = dp_table[i - 1][j - 1] + 1
             else:
-                mat[i][j] = max(mat[i - 1][j], mat[i][j - 1])
+                dp_table[i][j] = max(dp_table[i][j - 1], dp_table[i - 1][j])
 
-    return mat[m][n]
+    return dp_table[m][n]

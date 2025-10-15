@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from algorithms.dp.fib import fib_list
+from perf_tasks.perf_fib1.baseline_snippet import fib_list_baseline
 from perf_tasks._templates.perf_harness import measure_performance
 
 
@@ -32,29 +33,42 @@ def test_correctness():
 
 def test_performance():
     """
-    Performance gate: fib_list should complete quickly for n=30.
+    Performance gate: fib_list should be within 1.5x of baseline performance.
 
-    With the bug (missing memoization), this takes 10+ seconds.
-    After fixing (proper DP), it should be < 0.01 seconds.
+    Compares current implementation against the correct baseline from master.
+    With the bug, current will be much slower (1000x+).
+    After fixing, current should match baseline speed (within 1.5x).
     """
     n = 30
 
-    # Measure performance
-    perf = measure_performance(
-        lambda: fib_list(n),
-        n_runs=5,
-        warmup=1
+    # Measure current implementation
+    def run_current():
+        fib_list(n)
+
+    current_perf = measure_performance(run_current, n_runs=5, warmup=1)
+
+    # Measure baseline implementation
+    def run_baseline():
+        fib_list_baseline(n)
+
+    baseline_perf = measure_performance(run_baseline, n_runs=5, warmup=1)
+
+    # Calculate slowdown factor
+    current_time = current_perf['median']
+    baseline_time = baseline_perf['median']
+    slowdown_factor = current_time / baseline_time
+
+    # Performance gate: current should be within 1.5x of baseline
+    # With bug: slowdown will be 1000x+ → FAIL
+    # After fix: slowdown will be ~1.0x → PASS
+    assert slowdown_factor < 1.5, (
+        f"fib_list is {slowdown_factor:.1f}x slower than baseline. "
+        f"Current: {current_time:.3f}s, Baseline: {baseline_time:.3f}s. "
+        f"Expected slowdown < 1.5x. Check for missing memoization."
     )
 
-    # Performance gate: should complete in under 0.01 seconds (optimized version)
-    # The bugged version takes 10+ seconds for n=30
-    # This test will FAIL with the bug, PASS after fix
-    assert perf['median'] < 0.01, (
-        f"fib_list too slow: {perf['median']:.3f}s for n={n}. "
-        f"Expected < 0.01s. Check for missing memoization/caching."
-    )
-
-    print(f"✓ Performance OK: {perf['median']:.4f}s (n={n})")
+    print(f"✓ Performance OK: {slowdown_factor:.2f}x baseline speed "
+          f"(current: {current_time:.3f}s, baseline: {baseline_time:.3f}s)")
 
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from algorithms.maths.prime_check import prime_check
+from perf_tasks.perf_prime1.baseline_snippet import prime_check_baseline
 from perf_tasks._templates.perf_harness import measure_performance
 
 

@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from algorithms.arrays.remove_duplicates import remove_duplicates
+from perf_tasks.perf_dup1.baseline_snippet import remove_duplicates_baseline
 from perf_tasks._templates.perf_harness import measure_performance
 
 
@@ -36,31 +37,44 @@ def test_correctness():
 
 def test_performance():
     """
-    Performance gate: remove_duplicates should scale linearly O(n).
+    Performance gate: remove_duplicates should be within 1.5x of baseline performance.
 
-    With the bug (list membership), this is O(n^2).
-    After fixing (set membership), it should be O(n), at least 50x faster for n=10000.
+    Compares current implementation against the correct baseline from master.
+    With the bug, current will be much slower (50-100x).
+    After fixing, current should match baseline speed (within 1.5x).
     """
     # Generate test data with many duplicates
     n = 10000
     test_data = list(range(n // 2)) * 2  # Each number appears twice
 
-    # Measure performance
-    perf = measure_performance(
-        lambda: remove_duplicates(test_data.copy()),
-        n_runs=5,
-        warmup=1
+    # Measure current implementation
+    def run_current():
+        remove_duplicates(test_data.copy())
+
+    current_perf = measure_performance(run_current, n_runs=5, warmup=1)
+
+    # Measure baseline implementation
+    def run_baseline():
+        remove_duplicates_baseline(test_data.copy())
+
+    baseline_perf = measure_performance(run_baseline, n_runs=5, warmup=1)
+
+    # Calculate slowdown factor
+    current_time = current_perf['median']
+    baseline_time = baseline_perf['median']
+    slowdown_factor = current_time / baseline_time
+
+    # Performance gate: current should be within 1.5x of baseline
+    # With bug: slowdown will be 50-100x → FAIL
+    # After fix: slowdown will be ~1.0x → PASS
+    assert slowdown_factor < 1.5, (
+        f"remove_duplicates is {slowdown_factor:.1f}x slower than baseline. "
+        f"Current: {current_time:.3f}s, Baseline: {baseline_time:.3f}s. "
+        f"Expected slowdown < 1.5x. Check for O(n) list membership (use set)."
     )
 
-    # Performance gate: should complete in under 0.05 seconds (optimized version)
-    # The bugged version takes 2-5 seconds for n=10000
-    # This test will FAIL with the bug, PASS after fix
-    assert perf['median'] < 0.05, (
-        f"remove_duplicates too slow: {perf['median']:.3f}s for n={n}. "
-        f"Expected < 0.05s. Check for O(n) operations in loop (use set instead of list)."
-    )
-
-    print(f"✓ Performance OK: {perf['median']:.4f}s (n={n})")
+    print(f"✓ Performance OK: {slowdown_factor:.2f}x baseline speed "
+          f"(current: {current_time:.3f}s, baseline: {baseline_time:.3f}s)")
 
 
 if __name__ == "__main__":

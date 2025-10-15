@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from algorithms.dp.edit_distance import edit_distance
+from perf_tasks.perf_edit1.baseline_snippet import edit_distance_baseline
 from perf_tasks._templates.perf_harness import measure_performance
 
 

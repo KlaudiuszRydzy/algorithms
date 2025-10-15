@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from algorithms.bfs.shortest_distance_from_all_buildings import shortest_distance
+from perf_tasks.perf_bfs1.baseline_snippet import shortest_distance_baseline
 from perf_tasks._templates.perf_harness import measure_performance
 
 

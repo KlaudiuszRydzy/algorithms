@@ -1,6 +1,13 @@
-# Optimized version using DP table for O(m*n) time
-def edit_distance(word_a, word_b):
-    """Finds edit distance using DP table - O(m*n) time"""
+"""
+Baseline (correct) implementation of edit_distance from master branch.
+This is the fast O(m*n) version using DP table.
+"""
+
+def edit_distance_baseline(word_a, word_b):
+    """
+    Compute edit distance using dynamic programming.
+    Complexity: O(m*n)
+    """
     length_a, length_b = len(word_a) + 1, len(word_b) + 1
 
     edit = [[0 for _ in range(length_b)] for _ in range(length_a)]

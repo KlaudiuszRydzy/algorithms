@@ -1,9 +1,28 @@
-# Original (fast) merge function before bug injection
-def merge(left, right, merged):
+"""
+Baseline (correct) implementation of merge_sort from master branch.
+This is the fast O(n log n) version without performance bugs.
+"""
+
+def merge_sort_baseline(arr):
+    """ Merge Sort
+        Complexity: O(n log(n))
+    """
+    # Our recursive base case
+    if len(arr) <= 1:
+        return arr
+    mid = len(arr) // 2
+    # Perform merge_sort recursively on both halves
+    left, right = merge_sort_baseline(arr[:mid]), merge_sort_baseline(arr[mid:])
+
+    # Merge each side together
+    merge_baseline(left, right, arr)
+    return arr
+
+
+def merge_baseline(left, right, merged):
     """ Merge helper
         Complexity: O(n)
     """
-
     left_cursor, right_cursor = 0, 0
     while left_cursor < len(left) and right_cursor < len(right):
         # Sort each one and place into the result

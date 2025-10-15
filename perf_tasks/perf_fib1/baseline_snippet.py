@@ -1,9 +1,12 @@
-# Original (fast) fib_list before bug injection
-def fib_list(n):
+"""
+Baseline (correct) implementation of fib_list from master branch.
+This is the fast O(n) version with proper DP.
+"""
+
+def fib_list_baseline(n):
     """
-    This algorithm computes the n-th fibbonacci number
-    very quick. approximate O(n)
-    The algorithm use dynamic programming.
+    Computes the n-th fibonacci number using dynamic programming.
+    Complexity: O(n)
     """
     assert n >= 0, 'n must be a positive integer'
 

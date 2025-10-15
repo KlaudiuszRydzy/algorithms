@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from algorithms.dp.knapsack import Item, get_maximum_value
+from perf_tasks.perf_knap1.baseline_snippet import get_maximum_value_baseline, Item as ItemBaseline
 from perf_tasks._templates.perf_harness import measure_performance
 
 
