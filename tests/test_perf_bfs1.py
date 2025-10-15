@@ -45,13 +45,13 @@ def test_correctness():
 
 def test_performance():
     """
-    Performance gate: BFS with large grid should be reasonably fast.
+    Performance gate: BFS should be within 1.5x of baseline performance.
 
-    With the bug (list.pop(0)), this is much slower due to O(n) per pop.
-    After fixing (deque.popleft()), it should be at least 10x faster for large grids.
+    Compares current implementation against the correct baseline from master.
+    With the bug, current will be slower (10-20x).
+    After fixing, current should match baseline speed (within 1.5x).
     """
     # Generate a larger grid for performance testing
-    # Create a 200x200 grid with many buildings to force extensive BFS
     size = 200
     grid = [[0 for _ in range(size)] for _ in range(size)]
 
@@ -61,22 +61,36 @@ def test_performance():
         if x < size and y < size:
             grid[x][y] = 1
 
-    # Measure performance
-    perf = measure_performance(
-        lambda: shortest_distance([row[:] for row in grid]),
-        n_runs=2,
-        warmup=1
+    # Measure current implementation
+    def run_current():
+        grid_copy = [row[:] for row in grid]
+        shortest_distance(grid_copy)
+
+    current_perf = measure_performance(run_current, n_runs=2, warmup=1)
+
+    # Measure baseline implementation
+    def run_baseline():
+        grid_copy = [row[:] for row in grid]
+        shortest_distance_baseline(grid_copy)
+
+    baseline_perf = measure_performance(run_baseline, n_runs=2, warmup=1)
+
+    # Calculate slowdown factor
+    current_time = current_perf['median']
+    baseline_time = baseline_perf['median']
+    slowdown_factor = current_time / baseline_time
+
+    # Performance gate: current should be within 1.5x of baseline
+    # With bug: slowdown will be 10-20x → FAIL
+    # After fix: slowdown will be ~1.0x → PASS
+    assert slowdown_factor < 1.5, (
+        f"BFS is {slowdown_factor:.1f}x slower than baseline. "
+        f"Current: {current_time:.3f}s, Baseline: {baseline_time:.3f}s. "
+        f"Expected slowdown < 1.5x. Check for O(n) queue ops (use deque)."
     )
 
-    # Performance gate: should complete in under 5.0 seconds (optimized version)
-    # The bugged version takes 20+ seconds for 200x200 grid with list.pop(0)
-    # This test will FAIL with the bug, PASS after fix
-    assert perf['median'] < 5.0, (
-        f"shortest_distance too slow: {perf['median']:.3f}s for {size}x{size} grid. "
-        f"Expected < 5.0s. Check for O(n) queue operations (use deque instead of list)."
-    )
-
-    print(f"✓ Performance OK: {perf['median']:.4f}s ({size}x{size} grid)")
+    print(f"✓ Performance OK: {slowdown_factor:.2f}x baseline speed "
+          f"(current: {current_time:.3f}s, baseline: {baseline_time:.3f}s)")
 
 
 if __name__ == "__main__":

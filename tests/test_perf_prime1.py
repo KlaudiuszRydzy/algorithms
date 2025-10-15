@@ -44,36 +44,47 @@ def test_correctness():
 
 def test_performance():
     """
-    Performance gate: prime_check should efficiently handle large numbers.
+    Performance gate: prime_check should be within 1.5x of baseline performance.
 
-    With the bug (redundant sqrt in loop), this is slower.
-    After fixing (remove redundant computation), should be at least 3x faster.
+    Compares current implementation against the correct baseline from master.
+    With the bug, current will be slower (3-5x).
+    After fixing, current should match baseline speed (within 1.5x).
     """
     # Test with many large prime-like numbers to amplify the bug
     large_numbers = []
-    for i in range(500):  # Increased to 500 numbers
-        large_numbers.append(999900 + i)  # Check 500 numbers around 999900
+    for i in range(500):
+        large_numbers.append(999900 + i)
 
-    def check_all():
+    # Measure current implementation
+    def run_current():
         for num in large_numbers:
             prime_check(num)
 
-    # Measure performance
-    perf = measure_performance(
-        check_all,
-        n_runs=3,
-        warmup=1
+    current_perf = measure_performance(run_current, n_runs=3, warmup=1)
+
+    # Measure baseline implementation
+    def run_baseline():
+        for num in large_numbers:
+            prime_check_baseline(num)
+
+    baseline_perf = measure_performance(run_baseline, n_runs=3, warmup=1)
+
+    # Calculate slowdown factor
+    current_time = current_perf['median']
+    baseline_time = baseline_perf['median']
+    slowdown_factor = current_time / baseline_time
+
+    # Performance gate: current should be within 1.5x of baseline
+    # With bug: slowdown will be 3-5x → FAIL
+    # After fix: slowdown will be ~1.0x → PASS
+    assert slowdown_factor < 1.5, (
+        f"prime_check is {slowdown_factor:.1f}x slower than baseline. "
+        f"Current: {current_time:.3f}s, Baseline: {baseline_time:.3f}s. "
+        f"Expected slowdown < 1.5x. Check for redundant computations in loop."
     )
 
-    # Performance gate: should complete in under 0.05 seconds (optimized version)
-    # The bugged version takes 0.2+ seconds due to redundant math operations
-    # This test will FAIL with the bug, PASS after fix
-    assert perf['median'] < 0.05, (
-        f"prime_check too slow: {perf['median']:.4f}s for large numbers. "
-        f"Expected < 0.01s. Check for redundant computations in loop."
-    )
-
-    print(f"✓ Performance OK: {perf['median']:.4f}s")
+    print(f"✓ Performance OK: {slowdown_factor:.2f}x baseline speed "
+          f"(current: {current_time:.3f}s, baseline: {baseline_time:.3f}s)")
 
 
 if __name__ == "__main__":

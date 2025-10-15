@@ -26,24 +26,44 @@ def test_correctness():
 
 def test_performance():
     """
-    Performance gate: knapsack should scale O(n*W) not exponentially.
+    Performance gate: knapsack should be within 1.5x of baseline performance.
+
+    Compares current implementation against the correct baseline from master.
+    With the bug, current will be much slower (1000x+).
+    After fixing, current should match baseline speed (within 1.5x).
     """
     # Create 22 items
     items = [Item(i*10 + 5, i % 5 + 1) for i in range(22)]
     capacity = 50
 
-    perf = measure_performance(
-        lambda: get_maximum_value(items, capacity),
-        n_runs=2,
-        warmup=1
+    # Measure current implementation
+    def run_current():
+        get_maximum_value(items, capacity)
+
+    current_perf = measure_performance(run_current, n_runs=2, warmup=1)
+
+    # Measure baseline implementation
+    def run_baseline():
+        get_maximum_value_baseline(items, capacity)
+
+    baseline_perf = measure_performance(run_baseline, n_runs=2, warmup=1)
+
+    # Calculate slowdown factor
+    current_time = current_perf['median']
+    baseline_time = baseline_perf['median']
+    slowdown_factor = current_time / baseline_time
+
+    # Performance gate: current should be within 1.5x of baseline
+    # With bug: slowdown will be 1000x+ → FAIL
+    # After fix: slowdown will be ~1.0x → PASS
+    assert slowdown_factor < 1.5, (
+        f"knapsack is {slowdown_factor:.1f}x slower than baseline. "
+        f"Current: {current_time:.3f}s, Baseline: {baseline_time:.3f}s. "
+        f"Expected slowdown < 1.5x. Check for missing memoization/DP array."
     )
 
-    assert perf['median'] < 0.5, (
-        f"get_maximum_value too slow: {perf['median']:.3f}s for n={len(items)}. "
-        f"Expected < 0.5s. Check for missing memoization/DP array."
-    )
-
-    print(f"✓ Performance OK: {perf['median']:.4f}s (n={len(items)})")
+    print(f"✓ Performance OK: {slowdown_factor:.2f}x baseline speed "
+          f"(current: {current_time:.3f}s, baseline: {baseline_time:.3f}s)")
 
 
 if __name__ == "__main__":

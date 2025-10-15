@@ -37,31 +37,43 @@ def test_correctness():
 
 def test_performance():
     """
-    Performance gate: edit_distance should scale O(m*n) not exponentially.
+    Performance gate: edit_distance should be within 1.5x of baseline performance.
 
-    With the bug (no memoization), this is exponential.
-    After fixing (DP table), should be O(m*n), at least 100x faster for len=18.
+    Compares current implementation against the correct baseline from master.
+    With the bug, current will be much slower (1000x+).
+    After fixing, current should match baseline speed (within 1.5x).
     """
-    # Test with strings of moderate length
     word_a = "kitten sitting here"  # Length 18
     word_b = "sitting  kittens!"  # Length 18
 
-    # Measure performance
-    perf = measure_performance(
-        lambda: edit_distance(word_a, word_b),
-        n_runs=3,
-        warmup=1
+    # Measure current implementation
+    def run_current():
+        edit_distance(word_a, word_b)
+
+    current_perf = measure_performance(run_current, n_runs=3, warmup=1)
+
+    # Measure baseline implementation
+    def run_baseline():
+        edit_distance_baseline(word_a, word_b)
+
+    baseline_perf = measure_performance(run_baseline, n_runs=3, warmup=1)
+
+    # Calculate slowdown factor
+    current_time = current_perf['median']
+    baseline_time = baseline_perf['median']
+    slowdown_factor = current_time / baseline_time
+
+    # Performance gate: current should be within 1.5x of baseline
+    # With bug: slowdown will be 1000x+ → FAIL
+    # After fix: slowdown will be ~1.0x → PASS
+    assert slowdown_factor < 1.5, (
+        f"edit_distance is {slowdown_factor:.1f}x slower than baseline. "
+        f"Current: {current_time:.3f}s, Baseline: {baseline_time:.3f}s. "
+        f"Expected slowdown < 1.5x. Check for missing memoization/DP table."
     )
 
-    # Performance gate: should complete in under 0.01 seconds (optimized DP version)
-    # The bugged recursive version takes 5+ seconds for length 18
-    # This test will FAIL with the bug, PASS after fix
-    assert perf['median'] < 0.01, (
-        f"edit_distance too slow: {perf['median']:.3f}s for len={len(word_a)}. "
-        f"Expected < 0.01s. Check for missing memoization/DP table."
-    )
-
-    print(f"✓ Performance OK: {perf['median']:.4f}s (len={len(word_a)})")
+    print(f"✓ Performance OK: {slowdown_factor:.2f}x baseline speed "
+          f"(current: {current_time:.3f}s, baseline: {baseline_time:.3f}s)")
 
 
 if __name__ == "__main__":
